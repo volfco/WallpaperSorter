@@ -11,22 +11,24 @@ import pickle
 __MINRESOLUTION = [1920, 1080]
 
 # Functions
-def download(fileName, cookie):
+def download(dir, fileName, cookie):
     name = fileName.split('/')[-1].split('?')[0]
-    if os.path.exists('DLs\\' + name):
+    path = os.path.abspath('./{0}/{1}'.format(dir, fileName)
+    if os.path.exists(path):
         print("Already Exists.")
         return
 
     r = requests.get(fileName, allow_redirects=True, stream=True, cookies=cookie)
-    with open('DLs\\' + name, 'wb') as fd:
+    with open(path, 'wb') as fd:
         for chunk in r.iter_content(chunk_size=128):
             fd.write(chunk)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("username")
-    parser.add_argument("--collection")
+    parser.add_argument("username", help="The username to download. If no collection ID is included, we will download all of their favorates.")
+    parser.add_argument("--collection", help="Collection ID")
+    parser.add_argument("--dir", help="Directory to download to", default="Download")
 
     args = parser.parse_args()
 
@@ -106,7 +108,7 @@ if __name__ == "__main__":
                 if Res[0] >= __MINRESOLUTION[0] and Res[1] >= __MINRESOLUTION[1]:
                     LinkURL = DownloadLink[0].get('href')
                     print("[{0}/{1}] {2}".format(POS, TOTAL_LINKS, LinkURL))
-                    download(LinkURL, Req.cookies)
+                    download(args.dir, LinkURL, Req.cookies)
             else:
                 FullSizeSoup = RequestSoup.findAll(attrs={'class': 'dev-content-full'})
                 if FullSizeSoup.__len__() is 0:
@@ -114,7 +116,7 @@ if __name__ == "__main__":
                 else:
                     LinkURL = FullSizeSoup[0].get('src')
                     print("[{0}/{1}] {2}".format(POS, TOTAL_LINKS, LinkURL))
-                    download(LinkURL, Req.cookies)
+                    download(args.dir, LinkURL, Req.cookies)
         except Exception as e:
             print("Exception", e, __link)
 
