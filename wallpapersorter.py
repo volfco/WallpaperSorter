@@ -59,11 +59,11 @@ if __name__ == "__main__":
     for obj in os.listdir(args.path):
 
         type = obj.split('.')[-1]
-        if type.lower() not in ['jpg', 'png', 'jpeg'] or os.path.isdir("{0}\\{1}".format(args.path, obj)):
+        if type.lower() not in ['jpg', 'png', 'jpeg'] or os.path.isdir(os.path.abspath("{0}\\{1}".format(args.path, obj))):
             continue
 
         # Get the resolution
-        __PATH = args.path + "\\" + obj
+        __PATH = os.path.abspath("{0}\\{1}".format(args.path, obj))
         try:
             with Image.open(__PATH) as im:
                 __RES = im.size
