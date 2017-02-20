@@ -17,14 +17,19 @@ __RESOLUTIONS = [
     [1440, 900],
     [1280, 800],
     [1280, 720],
-    [1080, 1920],
-    [720, 1280],
+#    [1080, 1920],
+#    [720, 1280],
 ]
+
+# Aspect Ratio Control. 
+#   0   - Tollerence (1.78*n)
+#   1   + Tollerence (1.78*n)
+__ASPECT_RATIO = [1, 1.15]
 
 
 def move_file(basedir, name, target, move=False):
-    __PATH = "{0}\\{1}".format(basedir, name)
-    __TARGET = basedir + "\\{0}x{1}\\".format(target[0], target[1])
+    __PATH = os.path.abspath("{0}\\{1}".format(basedir, name))
+    __TARGET = os.path.abspath(basedir + "\\{0}x{1}\\".format(target[0], target[1]))
 
     if not os.path.isdir(__TARGET):
         os.makedirs(__TARGET)
@@ -35,7 +40,7 @@ def move_file(basedir, name, target, move=False):
         else:
             shutil.move(__PATH, __TARGET + name)
     except Exception:
-        print("Unable to move file. In use?")
+        print("[ERROR ] Unable to move file. In use?")
 
 
 if __name__ == "__main__":
@@ -43,6 +48,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--move", action="store_false")
     parser.add_argument("path", default='.')
+    parser.add_argument("--verbose", default=False, action="store_true")
 
     args = parser.parse_args()
 
@@ -62,20 +68,32 @@ if __name__ == "__main__":
             with Image.open(__PATH) as im:
                 __RES = im.size
         except ValueError as e:
-            print("Unable to open Image", e)
+            print("[ERROR ] Unable to open Image", e)
             continue
 
         Walked += 1
         for i in range(0, __RESOLUTIONS.__len__()):
             if __RESOLUTIONS[i][0] == __RES[0] and __RESOLUTIONS[i][1] == __RES[1] or \
                                     __RES[0] >= __RESOLUTIONS[i][0] and __RES[1] >= __RESOLUTIONS[i][1]:
-                move_file(args.path, obj, __RESOLUTIONS[i], move=args.move)
-                Sorted += 1
-                break
+                if (__RESOLUTIONS[i][0]/__RESOLUTIONS[i][1])*__ASPECT_RATIO[1] >= \
+                    __RES[0] / __RES[1] >= (__RESOLUTIONS[i][0]/__RESOLUTIONS[i][1])*__ASPECT_RATIO[0]:     # Check Aspect Ratio
+                    
+                    if parser.verbose:
+                        print("[INFO  ] {0} matches {1[0]}x{1[1]} ".format(obj, __RESOLUTIONS[i]))
+
+                    move_file(args.path, obj, __RESOLUTIONS[i], move=args.move)
+                    Sorted += 1
+                    break
+                else:
+                    if parser.verbose:
+                        print("[INFO  ] {0} violated aspect ratio constraints. ".format(obj))
+            else:
+                if parser.verbose:
+                    print("[INFO  ] {0} did not match any resolutions. ".format(obj))
 
         # move_file(args.path, obj, ['null', 'null'], move=args.move)
 
-    print("Sorted {0} files. Walked {1} files".format(Sorted, Walked))
+    print("[STATUS] Sorted {0} files. Walked {1} files".format(Sorted, Walked))
 
 
 
