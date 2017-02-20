@@ -11,6 +11,8 @@ __RESOLUTIONS = [
     [3440, 1440],
     [2560, 1440],
     [1920, 1200],
+    [1840, 1200],
+    [3840, 1080],
     [1920, 1080],
     [1680, 1050],
     [1600, 900],
@@ -24,21 +26,21 @@ __RESOLUTIONS = [
 # Aspect Ratio Control. 
 #   0   - Tollerence (1.78*n)
 #   1   + Tollerence (1.78*n)
-__ASPECT_RATIO = [1, 1.15]
+__ASPECT_RATIO = [0.9, 1.40]
 
 
 def move_file(basedir, name, target, move=False):
-    __PATH = os.path.abspath("{0}\\{1}".format(basedir, name))
-    __TARGET = os.path.abspath(basedir + "\\{0}x{1}\\".format(target[0], target[1]))
+    __PATH = os.path.abspath("{0}/{1}".format(basedir, name))
+    __TARGET = os.path.abspath(basedir + "/{0}x{1}/".format(target[0], target[1]))
 
     if not os.path.isdir(__TARGET):
         os.makedirs(__TARGET)
 
     try:
         if not move:
-            shutil.copyfile(__PATH, __TARGET + name)
+            shutil.copyfile(__PATH, os.path.abspath("{0}/{1}".format(__TARGET, name)))
         else:
-            shutil.move(__PATH, __TARGET + name)
+            shutil.move(__PATH, os.path.abspath("{0}/{1}".format(__TARGET, name)))
     except Exception:
         print("[ERROR ] Unable to move file. In use?")
 
@@ -47,8 +49,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--move", action="store_false")
-    parser.add_argument("path", default='.')
     parser.add_argument("--verbose", default=False, action="store_true")
+    parser.add_argument("path", default='.')
+    
 
     args = parser.parse_args()
 
@@ -59,11 +62,11 @@ if __name__ == "__main__":
     for obj in os.listdir(args.path):
 
         type = obj.split('.')[-1]
-        if type.lower() not in ['jpg', 'png', 'jpeg'] or os.path.isdir(os.path.abspath("{0}\\{1}".format(args.path, obj))):
+        if type.lower() not in ['jpg', 'png', 'jpeg'] or os.path.isdir(os.path.abspath("{0}/{1}".format(args.path, obj))):
             continue
 
         # Get the resolution
-        __PATH = os.path.abspath("{0}\\{1}".format(args.path, obj))
+        __PATH = os.path.abspath("{0}/{1}".format(args.path, obj))
         try:
             with Image.open(__PATH) as im:
                 __RES = im.size
@@ -78,17 +81,17 @@ if __name__ == "__main__":
                 if (__RESOLUTIONS[i][0]/__RESOLUTIONS[i][1])*__ASPECT_RATIO[1] >= \
                     __RES[0] / __RES[1] >= (__RESOLUTIONS[i][0]/__RESOLUTIONS[i][1])*__ASPECT_RATIO[0]:     # Check Aspect Ratio
                     
-                    if parser.verbose:
+                    if args.verbose:
                         print("[INFO  ] {0} matches {1[0]}x{1[1]} ".format(obj, __RESOLUTIONS[i]))
 
                     move_file(args.path, obj, __RESOLUTIONS[i], move=args.move)
                     Sorted += 1
                     break
                 else:
-                    if parser.verbose:
+                    if args.verbose:
                         print("[INFO  ] {0} violated aspect ratio constraints. ".format(obj))
             else:
-                if parser.verbose:
+                if args.verbose:
                     print("[INFO  ] {0} did not match any resolutions. ".format(obj))
 
         # move_file(args.path, obj, ['null', 'null'], move=args.move)
