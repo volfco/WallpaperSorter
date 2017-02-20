@@ -16,7 +16,9 @@ __RESOLUTIONS = [
     [1600, 900],
     [1440, 900],
     [1280, 800],
-    [1280, 720]
+    [1280, 720],
+    [1080, 1920],
+    [720, 1280],
 ]
 
 
@@ -27,10 +29,13 @@ def move_file(basedir, name, target, move=False):
     if not os.path.isdir(__TARGET):
         os.makedirs(__TARGET)
 
-    if not move:
-        shutil.copyfile(__PATH, __TARGET + name)
-    else:
-        shutil.move(__PATH, __TARGET + name)
+    try:
+        if not move:
+            shutil.copyfile(__PATH, __TARGET + name)
+        else:
+            shutil.move(__PATH, __TARGET + name)
+    except Exception:
+        print("Unable to move file. In use?")
 
 
 if __name__ == "__main__":
@@ -43,26 +48,34 @@ if __name__ == "__main__":
 
     __RESOLUTIONS.sort(key=lambda x: x[1], reverse=True)
 
-    # walk the directory
+    Sorted = 0
+    Walked = 0
     for obj in os.listdir(args.path):
+
         type = obj.split('.')[-1]
-        if type.lower() not in ['jpg', 'png', 'jpeg']:
+        if type.lower() not in ['jpg', 'png', 'jpeg'] or os.path.isdir("{0}\\{1}".format(args.path, obj)):
             continue
 
         # Get the resolution
         __PATH = args.path + "\\" + obj
-        with Image.open(__PATH) as im:
-            __RES = im.size
+        try:
+            with Image.open(__PATH) as im:
+                __RES = im.size
+        except ValueError as e:
+            print("Unable to open Image", e)
+            continue
 
-        # Walk the list
+        Walked += 1
         for i in range(0, __RESOLUTIONS.__len__()):
             if __RESOLUTIONS[i][0] == __RES[0] and __RESOLUTIONS[i][1] == __RES[1] or \
                                     __RES[0] >= __RESOLUTIONS[i][0] and __RES[1] >= __RESOLUTIONS[i][1]:
                 move_file(args.path, obj, __RESOLUTIONS[i], move=args.move)
+                Sorted += 1
                 break
 
-        print("Unable to sort {0}".format(obj))
+        # move_file(args.path, obj, ['null', 'null'], move=args.move)
 
+    print("Sorted {0} files. Walked {1} files".format(Sorted, Walked))
 
 
 
