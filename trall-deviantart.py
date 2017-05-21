@@ -10,10 +10,11 @@ import pickle
 # Variables
 __MINRESOLUTION = [1920, 1080]
 
+
 # Functions
-def download(dir, fileName, cookie):
+def download(fileName, cookie):
     name = fileName.split('/')[-1].split('?')[0]
-    path = os.path.abspath('./{0}/{1}'.format(dir, fileName)
+    path = 'DLs\\' + name
     if os.path.exists(path):
         print("Already Exists.")
         return
@@ -23,12 +24,13 @@ def download(dir, fileName, cookie):
         for chunk in r.iter_content(chunk_size=128):
             fd.write(chunk)
 
+    return path
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("username", help="The username to download. If no collection ID is included, we will download all of their favorates.")
-    parser.add_argument("--collection", help="Collection ID")
-    parser.add_argument("--dir", help="Directory to download to", default="Download")
+    parser.add_argument("username")
+    parser.add_argument("--collection")
 
     args = parser.parse_args()
 
@@ -89,7 +91,6 @@ if __name__ == "__main__":
             if _LINKS.__len__() is 1:
                 Links.append(_LINKS[0].get('href'))
 
-
     print("Total Links Found:", Links.__len__())
 
     # Loop through each link we've found
@@ -108,7 +109,7 @@ if __name__ == "__main__":
                 if Res[0] >= __MINRESOLUTION[0] and Res[1] >= __MINRESOLUTION[1]:
                     LinkURL = DownloadLink[0].get('href')
                     print("[{0}/{1}] {2}".format(POS, TOTAL_LINKS, LinkURL))
-                    download(args.dir, LinkURL, Req.cookies)
+                    download(LinkURL, Req.cookies)
             else:
                 FullSizeSoup = RequestSoup.findAll(attrs={'class': 'dev-content-full'})
                 if FullSizeSoup.__len__() is 0:
@@ -116,7 +117,7 @@ if __name__ == "__main__":
                 else:
                     LinkURL = FullSizeSoup[0].get('src')
                     print("[{0}/{1}] {2}".format(POS, TOTAL_LINKS, LinkURL))
-                    download(args.dir, LinkURL, Req.cookies)
+                    download(LinkURL, Req.cookies)
         except Exception as e:
             print("Exception", e, __link)
 
