@@ -47,6 +47,7 @@ while __CONTINUE:
 
     if __TOTAL_PAGES is __PAGE:
         __CONTINUE = False
+        break
     else:
         __PAGE += 1
 
